@@ -7,7 +7,7 @@ pi.o: pi.c
 	$(CXX) $(CXXFLAGS) -c pi.c 
 
 pi.out: pi.o
-	$(CXX) $(CXXFLAGS) -o pi.o pi.out
+	$(CXX) $(CXXFLAGS) pi.o -o pi.out
 
 clean:
-	rm -f pi.o pi.out
+	rm -f pi.o pi.out pi
