@@ -28,7 +28,7 @@ extern void mandelbrotSerial(
 // Thread entrypoint.
 void workerThreadStart(WorkerArgs *const args)
 {
-
+    
     // TODO FOR PP STUDENTS: Implement the body of the worker
     // thread here. Each thread could make a call to mandelbrotSerial()
     // to compute a part of the output image. For example, in a
@@ -36,8 +36,15 @@ void workerThreadStart(WorkerArgs *const args)
     // half of the image and thread 1 could compute the bottom half.
     // Of course, you can copy mandelbrotSerial() to this file and 
     // modify it to pursue a better performance.
+    double start_time = CycleTimer::currentSeconds();
 
-    printf("Hello world from thread %d\n", args->threadId);
+    for(int i=args->threadId; i<args->height; i+=args->numThreads){
+        mandelbrotSerial(args->x0, args->y0, args->x1, args->y1, args->width, args->height, i, 1, args->maxIterations, args->output);
+    }
+    double end_time = CycleTimer::currentSeconds();
+    
+    double time = end_time-start_time;
+    printf("[thread ID %d]: [%4fms]\n", args->threadId, 1000*time);
 }
 
 //
