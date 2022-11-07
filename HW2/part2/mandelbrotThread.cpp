@@ -41,10 +41,19 @@ void workerThreadStart(WorkerArgs *const args)
     for(int i=args->threadId; i<args->height; i+=args->numThreads){
         mandelbrotSerial(args->x0, args->y0, args->x1, args->y1, args->width, args->height, i, 1, args->maxIterations, args->output);
     }
+    
+    /*slow version
+    int id = args->threadId;
+    int hi=args->height/args->numThreads;
+    int hi1 = hi * (id+1);
+    for(int i=id*hi; i<hi1; i++){
+        mandelbrotSerial(args->x0, args->y0, args->x1, args->y1, args->width, args->height, i, 1, args->maxIterations, args->output);
+    }*/
+
     double end_time = CycleTimer::currentSeconds();
     
     double time = end_time-start_time;
-    printf("[thread ID %d]: [%4fms]\n", args->threadId, 1000*time);
+    printf("[thread ID %d]: [%.3fms]\n", args->threadId, 1000*time);
 }
 
 //

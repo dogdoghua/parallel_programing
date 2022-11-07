@@ -7,33 +7,36 @@
 #define ll long long 
 
 unsigned ll int circle_sum = 0;
-pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t lock;
 
 typedef struct threadData{
     ll int toss;
     ll int start;
+    int tid;
 }threadData;
 
 void *monteCarlo(void *param){
     threadData t_data = *(threadData *)param;
-    unsigned int seed = time(NULL);
-    // ll int toss = *(int*) t_data.toss;
+    unsigned seed = (unsigned)time(NULL)* (t_data.start+1);;
     ll t_circle_sum=0;
+    double x, y;
 
     for(ll int i=t_data.start; i<(t_data.toss + t_data.start); i++){
 
-        double x = (double)rand_r(&seed)/(double)RAND_MAX;
-        double y = (double)rand_r(&seed)/(double)RAND_MAX;
+        x = (double)rand_r(&seed)/(double)RAND_MAX;
+        y = (double)rand_r(&seed)/(double)RAND_MAX;
 
         if(x*x + y*y <= 1.0)
             t_circle_sum++;
-
+        
         
     }
+    // printf("thread[%d] count: %lld\n", t_data.tid, circle_sum);
+
+
     pthread_mutex_lock(&lock);
-    
     circle_sum += t_circle_sum;
-    // printf("---------\n%lld\n", circle_sum);
+    // printf("---------------------------------%lld\n", circle_sum);
 
     pthread_mutex_unlock(&lock);
 
@@ -52,17 +55,20 @@ int main(int argc, char **argv){       // argv: inputs from command line, argc: 
 
     pthread_t* threads;
     threads = (pthread_t*)malloc(num_thread * sizeof(pthread_t));
-
+    
     threadData t_data[num_thread];
 
-    int state;
+    pthread_mutex_init(&lock, NULL);
+    // int state;
     // printf("number of thread%d number of toss:%lld, toss per thread%lld\n", num_thread, num_toss, toss_per_thread);
+
     for(int i=0; i<num_thread; i++){
 
         t_data[i].toss = toss_per_thread;
         t_data[i].start = i*toss_per_thread;
+        t_data[i].tid = i;
         // printf("create thread %d\n", i);
-        state = pthread_create(&threads[i], NULL, monteCarlo, (void *) &t_data[i]);
+        int state = pthread_create(&threads[i], NULL, monteCarlo, (void *) &t_data[i]);
 
         if(state){
             // printf("create error!\n");
@@ -70,16 +76,17 @@ int main(int argc, char **argv){       // argv: inputs from command line, argc: 
         }
     }
 
-    for(int i=0; i<num_thread; i++)
+    for(int i=0; i<num_thread; i++){
         pthread_join(threads[i], NULL);
-
+        // printf("thread[%d] done!\n", i);
+    }      
 
     pthread_mutex_destroy(&lock);
     free(threads);
     clock_t end = clock();
     exe_time += (double)(end-begin) / CLOCKS_PER_SEC;
     // printf("total sum:%lld total toss:%lld\n", circle_sum, num_toss);
-    printf("execution time is %fs\n", exe_time);
+    // printf("execution time is %fs\n", exe_time);
     printf("%7f\n", 4.0*(double)circle_sum/ (double)num_toss);
 
     return 0;
