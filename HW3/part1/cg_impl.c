@@ -1,4 +1,5 @@
 #include "cg_impl.h"
+#include <omp.h>
 //---------------------------------------------------------------------
 // Floaging point arrays here are named as in spec discussion of
 // CG algorithm
@@ -35,7 +36,7 @@ void conj_grad(int colidx[],
     // Now, obtain the norm of r: First, sum squares of r elements locally...
     //---------------------------------------------------------------------
     for (j = 0; j < lastcol - firstcol + 1; j++)
-    {
+    {  
         rho = rho + r[j] * r[j];
     }
 
@@ -59,13 +60,16 @@ void conj_grad(int colidx[],
         //       on the Cray t3d - overall speed of code is 1.5 times faster.
 
         // xxxxx this part make the program slow xxxxx
+        #pragma omp parallel for
         for (j = 0; j < lastrow - firstrow + 1; j++)
         {
             sum = 0.0;
+             
             for (k = rowstr[j]; k < rowstr[j + 1]; k++)
             {   // x_k+1 = x_k + alpha_k * p_k
                 sum = sum + a[k] * p[colidx[k]];
             }
+            #pragma omp atomic write
             q[j] = sum;
         }
 
@@ -111,7 +115,7 @@ void conj_grad(int colidx[],
         //---------------------------------------------------------------------
         // Obtain beta:
         //---------------------------------------------------------------------
-        beta = rho / rho0;
+        beta = rho / rho0;  //b_K = (r_k+1)^T * r_k+1 / rho0(k)
 
         //---------------------------------------------------------------------
         // p = r + beta*p
